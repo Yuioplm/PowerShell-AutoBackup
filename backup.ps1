@@ -1,2 +1,2 @@
-$Source = "$env:USERPROFILE\Documents"
-Write-Output "‘ÎÛƒtƒHƒ‹ƒ_F$source"
+ï»¿$Source = "$env:USERPROFILE\Documents"
+Write-Output "å¯¾è±¡ãƒ•ã‚©ãƒ«ãƒ€ï¼š$source"
