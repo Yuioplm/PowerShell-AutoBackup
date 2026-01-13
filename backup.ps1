@@ -1,1 +1,2 @@
-Write-Output "バックアップ処理を開始します"
+$Source = "$env:USERPROFILE\Documents"
+Write-Output "対象フォルダ：$source"
