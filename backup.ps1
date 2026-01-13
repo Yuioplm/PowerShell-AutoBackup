@@ -1,2 +1,9 @@
-ï»¿$Source = "$env:USERPROFILE\Documents"
-Write-Output "å¯¾è±¡ãƒ•ã‚©ãƒ«ãƒ€ï¼š$source"
+# ‘ÎÛƒtƒHƒ‹ƒ_
+$Source = "$env:USERPROFILE\Documents"
+
+#Šî€“úi’¼‹ß1‚©Œj
+$borderDate = (Get-Date).AddMonths(-1)
+
+#’¼‹ß1‚©ŒˆÈ“à‚ÉXV‚³‚ê‚½ƒtƒ@ƒCƒ‹
+$recentFiles = Get-ChildItem -Path $Source -Recurse -File |
+    Where-Object { $_.LastWriteTime -ge $borderDate }
