@@ -5,7 +5,7 @@ $Source = "$env:USERPROFILE\Documents"
 $borderDate = (Get-Date).AddMonths(-1)
 
 # 直近1か月以内に更新されたファイル
-$recentFiles = Get	-ChildItem -Path $Source -Recurse -File |
+$recentFiles = Get-ChildItem -Path $Source -Recurse -File |
     Where-Object {
         $_.LastWriteTime -ge $borderDate -and
         $_.FullName -notlike "$backupRoot"
@@ -15,7 +15,6 @@ $recentFiles = Get	-ChildItem -Path $Source -Recurse -File |
 $backupRoot = Join-Path $PSScriptRoot "backup"
 
 # バックアップフォルダがなければ作成
-ea30276 (WIP: copy extracted files to backup)
 if (-not (Test-Path $backupRoot)) {
     New-Item -ItemType Directory -Path $backupRoot | Out-Null
 }
@@ -50,5 +49,4 @@ if ($recentFiles.Count -gt 0) {
 exit 0
 
 
-ea30276 (WIP: copy extracted files to backup)
 
