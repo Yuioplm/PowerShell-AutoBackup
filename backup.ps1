@@ -8,11 +8,13 @@ $borderDate = (Get-Date).AddMonths(-1)
 $recentFiles = Get-ChildItem -Path $Source -Recurse -File |
     Where-Object {
         $_.LastWriteTime -ge $borderDate -and
-        $_.FullName -notlike "$backupRoot"
+        $_.FullName -notlike "$backupRoot*"
         }
 
 # バックアップ先フォルダ
-$backupRoot = Join-Path $PSScriptRoot "backup"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$backupRoot = Join-Path $scriptDir "backup"
+
 
 # バックアップフォルダがなければ作成
 if (-not (Test-Path $backupRoot)) {
@@ -21,6 +23,9 @@ if (-not (Test-Path $backupRoot)) {
 
 # CSV出力先
 $csvPath = Join-Path $backupRoot "backup_list.csv"
+
+# CSV出力用配列
+$copiedFiles = @()
 
 # フォルダ構成を維持してコピー
 foreach ($file in $recentFiles) {
@@ -36,15 +41,19 @@ foreach ($file in $recentFiles) {
         New-Item -ItemType Directory -Path $destinationDir -Force | Out-Null
     }
 
-    # 上書きしないでコピー
-    if (-not (Test-Path $destination)) {
-        Copy-Item -Path $file.FullName -Destination $destination 
-    }
+    # コピー
+    Copy-Item -Path $file.FullName -Destination $destination -Force
+    $copiedFiles += [PSCustomObject]@{
+        FileName = $file.Name
+        OriginalPath  = $file.FullName
+        LastWriteTime = $file.LastWriteTime
+        copiedAt      = Get-Date
+        }
 }
 
 # CSV出力
-if ($recentFiles.Count -gt 0) {
-    $recentFiles | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+if ($copiedFiles.Count -gt 0) {
+    $copiedFiles | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
 }
 exit 0
 
