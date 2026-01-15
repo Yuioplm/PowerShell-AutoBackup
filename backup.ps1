@@ -66,3 +66,8 @@ foreach ($file in $recentFiles) {
         }
     }
 }
+# CSVèoóÕ
+if ($copiedFiles.Count -gt 0) {
+    $copiedFiles | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+}
+exit 0
