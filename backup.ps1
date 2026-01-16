@@ -1,3 +1,10 @@
+# ==============================
+# PowerShell-AutoBackup
+# CSV出力対応版
+# ==============================
+
+# ===== 設定 ===== #
+
 # 対象フォルダ
 $Source = "$env:USERPROFILE\Documents"
 
@@ -10,15 +17,19 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 # バックアップ先フォルダ
 $backupRoot = Join-Path $scriptDir "backup"
 
-# バックアップフォルダがなければ作成
+# 基準日（直近1か月）
+$borderDate = (Get-Date).AddMonths(-1)
+
+# CSV出力先
+$csvPath = Join-Path $backupRoot "backup_list.csv"
+
+
+# ===== バックアップフォルダ作成 ===== #
 if (-not (Test-Path $backupRoot)) {
     New-Item -ItemType Directory -Path $backupRoot | Out-Null
 }
 
-# 基準日（直近1か月）
-$borderDate = (Get-Date).AddMonths(-1)
-
-# 直近1か月以内に更新されたファイル
+# ===== 対象ファイル抽出 ===== #
 $recentFiles = Get-ChildItem -Path $Source -Recurse -File |
     Where-Object {
         $_.LastWriteTime -ge $borderDate -and
@@ -26,14 +37,12 @@ $recentFiles = Get-ChildItem -Path $Source -Recurse -File |
         $_.FullName -ne $scriptPath
     }
 
-# CSV出力先
-$csvPath = Join-Path $backupRoot "backup_list.csv"
-
-# CSV出力用配列
+# ===== CSV　出力用配列 ===== #
 $copiedFiles = @()
 
-# フォルダ構成を維持してコピー
+# ===== コピー処理 ===== #
 foreach ($file in $recentFiles) {
+
     # 元フォルダからの相対パス
     $relativePath = $file.FullName.Substring($Source.Length)
 
@@ -49,25 +58,26 @@ foreach ($file in $recentFiles) {
     # コピー
     try {
         Copy-Item -Path $file.FullName -Destination $destination -Force -ErrorAction Stop
-        $copiedFiles += [PSCustomObject]@{
-            FileName = $file.Name
-            OriginalPath  = $file.FullName
-            LastWriteTime = $file.LastWriteTime
-            CopiedAt      = Get-Date
-            Status        = "Success"
-        }    
+        $status = "Success"        
     } catch {
-        $copiedFiles += [PSCustomObject]@{
-            FileName = $file.Name
-            OriginalPath  = $file.FullName
-            LastWriteTime = $file.LastWriteTime
-            CopiedAt      = Get-Date
-            Status        = "Locked / Skipped"        
-        }
+        $status = "Locked / Skipped"        
+    }
+
+    # CSV 用レコード
+    $copiedFiles += [PSCustomObject]@{
+        FileName = $file.Name
+        OriginalPath  = $file.FullName
+        LastWriteTime = $file.LastWriteTime
+        CopiedAt      = Get-Date
+        Status        = $status
     }
 }
-# CSV出力
+
+
+# ===== CSV 出力 =====
 if ($copiedFiles.Count -gt 0) {
     $copiedFiles | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
 }
+
+
 exit 0
